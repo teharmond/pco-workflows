@@ -19,6 +19,23 @@ export const metadata: Metadata = {
   title: "Kanban Workflows",
   description:
     "A simple way to visualize and manage your Planning Center workflows in the form of a kanban board.",
+  openGraph: {
+    title: "Kanban Workflows",
+    description:
+      "A simple way to visualize and manage your Planning Center workflows in the form of a kanban board.",
+    url: "https://workflows.thomasharmond.com",
+    siteName: "Kanban Workflows",
+    images: [
+      {
+        url: "https://workflows.thomasharmond.com/og-image.jpg", // Must be an absolute URL
+        width: 800,
+        height: 600,
+      },
+    ],
+
+    locale: "en_US",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
