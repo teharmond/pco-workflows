@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: "Kanban Workflows",
     images: [
       {
-        url: "https://workflows.thomasharmond.com/og-image.jpg", // Must be an absolute URL
+        url: "https://workflows.thomasharmond.com/og-image.png", // Must be an absolute URL
         width: 800,
         height: 600,
       },
