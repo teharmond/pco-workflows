@@ -18,6 +18,18 @@ export interface PCOWorkflow {
     completed_card_count?: number
     total_cards_count?: number
     overdue_card_count?: number
+    total_orphaned_card_count?: number
+    category_id?: string
+    created_at: string
+    updated_at: string
+  }
+}
+
+export interface PCOWorkflowCategory {
+  type: string
+  id: string
+  attributes: {
+    name: string
     created_at: string
     updated_at: string
   }
