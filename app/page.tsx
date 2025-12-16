@@ -1,6 +1,7 @@
-import { getTokensFromCookies } from "@/lib/auth";
+import { getAuthStatus } from "@/lib/pco-client";
 import { LoginButton } from "@/components/login-button";
 import { WorkflowsList } from "@/components/workflows-list";
+import { AuthRefresh } from "@/components/auth-refresh";
 import {
   Cards,
   Flowforthsvg,
@@ -36,11 +37,16 @@ const projects = [
 ];
 
 export default async function Page() {
-  const { accessToken } = await getTokensFromCookies();
-  const isLoggedIn = !!accessToken;
+  const authStatus = await getAuthStatus();
+
+  if (authStatus === "needs_refresh") {
+    return <AuthRefresh />;
+  }
+
+  const isLoggedIn = authStatus === "authenticated";
 
   return (
-    <main className="min-h-screen ">
+    <main className="min-h-screen px-4">
       {isLoggedIn ? (
         <div className="max-w-4xl mx-auto py-6">
           <div className="flex items-center  justify-between mb-8">

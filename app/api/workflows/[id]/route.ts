@@ -19,9 +19,13 @@ export async function GET(
       client.people.workflow(id).listCards(),
     ])
 
-    // Fetch person and assignee details for each card
+    // Filter out removed cards and fetch person and assignee details for each card
+    const activeCards = cards.data.filter(
+      (card: { attributes?: { removed_at?: string | null } }) => !card.attributes?.removed_at
+    )
+
     const cardsWithDetails = await Promise.all(
-      cards.data.map(async (card: { id: string; relationships?: { person?: { data?: { id: string } }; assignee?: { data?: { id: string } }; current_step?: { data?: { id: string } } } }) => {
+      activeCards.map(async (card: { id: string; relationships?: { person?: { data?: { id: string } }; assignee?: { data?: { id: string } }; current_step?: { data?: { id: string } } } }) => {
         const personId = card.relationships?.person?.data?.id
         const assigneeId = card.relationships?.assignee?.data?.id
         const currentStepId = card.relationships?.current_step?.data?.id

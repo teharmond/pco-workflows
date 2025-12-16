@@ -1,53 +1,74 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { TiptapEditor } from "@/components/tiptap-editor"
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { TiptapEditor } from "@/components/tiptap-editor";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import type { PCOWorkflowCard, PCOWorkflowCardActivity } from "@/lib/types"
-import { Send, MessageSquare, Clock, Check, ChevronUp, SkipForward, FastForward, UserX, Trash2 } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { PCOWorkflowCard, PCOWorkflowCardActivity } from "@/lib/types";
+import {
+  Send,
+  MessageSquare,
+  Clock,
+  Check,
+  ChevronUp,
+  SkipForward,
+  FastForward,
+  UserX,
+  Trash2,
+} from "lucide-react";
 
 interface CardDetailModalProps {
-  card: PCOWorkflowCard | null
-  workflowId: string
-  workflowName?: string
-  currentStepName?: string
-  nextStepName?: string
-  isLastStep?: boolean
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onCardUpdated?: () => void
+  card: PCOWorkflowCard | null;
+  workflowId: string;
+  workflowName?: string;
+  currentStepName?: string;
+  nextStepName?: string;
+  isFirstStep?: boolean;
+  isLastStep?: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCardUpdated?: () => void;
 }
 
 function formatDate(dateString: string) {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
 
-  if (minutes < 1) return "just now"
-  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`
-  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`
-  return date.toLocaleDateString()
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  return date.toLocaleDateString();
 }
 
 function getInitials(name: string) {
@@ -56,7 +77,7 @@ function getInitials(name: string) {
     .map((n) => n[0])
     .join("")
     .toUpperCase()
-    .slice(0, 2)
+    .slice(0, 2);
 }
 
 export function CardDetailModal({
@@ -65,58 +86,74 @@ export function CardDetailModal({
   workflowName,
   currentStepName,
   nextStepName,
+  isFirstStep,
   isLastStep,
   open,
   onOpenChange,
   onCardUpdated,
 }: CardDetailModalProps) {
-  const [activities, setActivities] = useState<PCOWorkflowCardActivity[]>([])
-  const [loadingActivities, setLoadingActivities] = useState(false)
-  const [note, setNote] = useState("")
-  const [savingNote, setSavingNote] = useState(false)
-  const [emailSubject, setEmailSubject] = useState("")
-  const [emailBody, setEmailBody] = useState("")
-  const [sendingEmail, setSendingEmail] = useState(false)
-  const [activeTab, setActiveTab] = useState("note")
-  const [completing, setCompleting] = useState(false)
+  const [activities, setActivities] = useState<PCOWorkflowCardActivity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [note, setNote] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [activeTab, setActiveTab] = useState("note");
+  const [completing, setCompleting] = useState(false);
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const personId = card?.relationships?.person?.data?.id
+  const personId = card?.relationships?.person?.data?.id;
   const personName = card?.person
     ? `${card.person.attributes.first_name} ${card.person.attributes.last_name}`
-    : "Unknown"
+    : "Unknown";
   const assigneeName = card?.assignee
     ? `${card.assignee.attributes.first_name} ${card.assignee.attributes.last_name}`
-    : "Unassigned"
+    : "Unassigned";
 
   useEffect(() => {
     if (open && card && personId) {
-      fetchActivities()
+      setInitialLoadComplete(false);
+      fetchActivities(true);
     }
-  }, [open, card, personId])
+  }, [open, card, personId]);
 
-  async function fetchActivities() {
-    if (!card || !personId) return
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!open) {
+      setInitialLoadComplete(false);
+    }
+  }, [open]);
 
-    setLoadingActivities(true)
+  async function fetchActivities(isInitialLoad = false) {
+    if (!card || !personId) return;
+
+    // Only show loading skeleton on initial load
+    if (isInitialLoad) {
+      setLoadingActivities(true);
+    }
     try {
       const response = await fetch(
         `/api/workflows/${workflowId}/cards/${card.id}/activities?personId=${personId}`
-      )
+      );
       if (response.ok) {
-        const data = await response.json()
-        setActivities(data.data || [])
+        const data = await response.json();
+        setActivities(data.data || []);
       }
     } catch (error) {
-      console.error("Failed to fetch activities:", error)
+      console.error("Failed to fetch activities:", error);
     } finally {
-      setLoadingActivities(false)
+      setLoadingActivities(false);
+      setInitialLoadComplete(true);
     }
   }
 
   async function handleSaveNote() {
-    if (!card || !personId || !note.trim()) return
+    if (!card || !personId || !note.trim()) return;
 
-    setSavingNote(true)
+    setSavingNote(true);
     try {
       const response = await fetch(
         `/api/workflows/${workflowId}/cards/${card.id}/notes`,
@@ -125,23 +162,23 @@ export function CardDetailModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ personId, note: note.trim() }),
         }
-      )
+      );
 
       if (response.ok) {
-        setNote("")
-        await fetchActivities()
+        setNote("");
+        await fetchActivities();
       }
     } catch (error) {
-      console.error("Failed to save note:", error)
+      console.error("Failed to save note:", error);
     } finally {
-      setSavingNote(false)
+      setSavingNote(false);
     }
   }
 
   async function handleSendEmail() {
-    if (!card || !personId || !emailSubject.trim() || !emailBody.trim()) return
+    if (!card || !personId || !emailSubject.trim() || !emailBody.trim()) return;
 
-    setSendingEmail(true)
+    setSendingEmail(true);
     try {
       const response = await fetch(
         `/api/workflows/${workflowId}/cards/${card.id}/send-email`,
@@ -154,24 +191,24 @@ export function CardDetailModal({
             body: emailBody.trim(),
           }),
         }
-      )
+      );
 
       if (response.ok) {
-        setEmailSubject("")
-        setEmailBody("")
-        await fetchActivities()
+        setEmailSubject("");
+        setEmailBody("");
+        await fetchActivities();
       }
     } catch (error) {
-      console.error("Failed to send email:", error)
+      console.error("Failed to send email:", error);
     } finally {
-      setSendingEmail(false)
+      setSendingEmail(false);
     }
   }
 
   async function handleCompleteStep() {
-    if (!card || !personId) return
+    if (!card || !personId) return;
 
-    setCompleting(true)
+    setCompleting(true);
     try {
       const response = await fetch(
         `/api/workflows/${workflowId}/cards/${card.id}/promote`,
@@ -180,21 +217,21 @@ export function CardDetailModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ personId }),
         }
-      )
+      );
 
       if (response.ok) {
-        onCardUpdated?.()
-        onOpenChange(false)
+        onCardUpdated?.();
+        onOpenChange(false);
       }
     } catch (error) {
-      console.error("Failed to complete step:", error)
+      console.error("Failed to complete step:", error);
     } finally {
-      setCompleting(false)
+      setCompleting(false);
     }
   }
 
   async function handleGoBack() {
-    if (!card || !personId) return
+    if (!card || !personId) return;
 
     try {
       const response = await fetch(
@@ -204,23 +241,65 @@ export function CardDetailModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ personId }),
         }
-      )
+      );
 
       if (response.ok) {
-        onCardUpdated?.()
-        onOpenChange(false)
+        onCardUpdated?.();
+        onOpenChange(false);
       }
     } catch (error) {
-      console.error("Failed to go back:", error)
+      console.error("Failed to go back:", error);
+    }
+  }
+
+  async function handleSkipStep() {
+    if (!card || !personId) return;
+
+    try {
+      const response = await fetch(
+        `/api/workflows/${workflowId}/cards/${card.id}/skip-step`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ personId }),
+        }
+      );
+
+      if (response.ok) {
+        onCardUpdated?.();
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error("Failed to skip step:", error);
     }
   }
 
   async function handleRemoveFromWorkflow() {
-    if (!card || !personId) return
+    if (!card || !personId) return;
 
-    if (!confirm("Are you sure you want to remove this person from the workflow?")) {
-      return
+    try {
+      const response = await fetch(
+        `/api/workflows/${workflowId}/cards/${card.id}/remove`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ personId }),
+        }
+      );
+
+      if (response.ok) {
+        onCardUpdated?.();
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error("Failed to remove from workflow:", error);
+    } finally {
+      setRemoveDialogOpen(false);
     }
+  }
+
+  async function handleDeleteCard() {
+    if (!card || !personId) return;
 
     try {
       const response = await fetch(
@@ -230,22 +309,24 @@ export function CardDetailModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ personId }),
         }
-      )
+      );
 
       if (response.ok) {
-        onCardUpdated?.()
-        onOpenChange(false)
+        onCardUpdated?.();
+        onOpenChange(false);
       }
     } catch (error) {
-      console.error("Failed to remove from workflow:", error)
+      console.error("Failed to delete card:", error);
+    } finally {
+      setDeleteDialogOpen(false);
     }
   }
 
-  if (!card) return null
+  if (!card) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="text-muted-foreground font-normal">Workflow:</span>
@@ -257,7 +338,7 @@ export function CardDetailModal({
           {/* Assignee info */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+              <div className="size-10  bg-primary/10 flex items-center justify-center text-sm font-medium">
                 {getInitials(assigneeName)}
               </div>
               <div>
@@ -271,9 +352,9 @@ export function CardDetailModal({
           </div>
 
           {/* Person card */}
-          <div className="border rounded-lg p-4 bg-muted/30">
+          <div className="border  p-4 bg-muted/30">
             <div className="flex items-center gap-3 mb-3">
-              <div className="size-12 rounded-full bg-muted flex items-center justify-center text-lg font-medium">
+              <div className="size-12  bg-muted flex items-center justify-center text-lg font-medium">
                 {getInitials(personName)}
               </div>
               <div>
@@ -282,7 +363,9 @@ export function CardDetailModal({
             </div>
 
             <div className="border-t pt-3 mt-3 space-y-2">
-              <p className="text-primary font-medium text-lg">{currentStepName || card.attributes.stage}</p>
+              <p className="text-primary font-medium text-lg">
+                {currentStepName || card.attributes.stage}
+              </p>
               {nextStepName && !isLastStep && (
                 <p className="text-sm text-muted-foreground">
                   <span className="italic">Next Step:</span> {nextStepName}
@@ -300,23 +383,39 @@ export function CardDetailModal({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="flex-1">
-                    <ChevronUp className="h-4 w-4 mr-2" />
                     More options
+                    <ChevronUp className="h-4 w-4 rotate-180" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={handleGoBack}>
-                    <SkipForward className="h-4 w-4 mr-2 rotate-180" />
+                  <DropdownMenuItem
+                    onClick={handleGoBack}
+                    disabled={isFirstStep}
+                  >
+                    <SkipForward className="h-4 w-4 mr-1 rotate-180" />
                     Go back a step
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <FastForward className="h-4 w-4 mr-2" />
-                    Skip to later step...
+                  <DropdownMenuItem
+                    onClick={handleSkipStep}
+                    disabled={isLastStep}
+                  >
+                    <FastForward className="h-4 w-4 mr-1" />
+                    Skip this step
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleRemoveFromWorkflow} variant="destructive">
-                    <UserX className="h-4 w-4 mr-2" />
+                  <DropdownMenuItem
+                    onClick={() => setRemoveDialogOpen(true)}
+                    variant="destructive"
+                  >
+                    <UserX className="h-4 w-4 mr-1" />
                     Remove from workflow
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setDeleteDialogOpen(true)}
+                    variant="destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete card
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -331,15 +430,65 @@ export function CardDetailModal({
             </div>
           </div>
 
+          {/* Remove from workflow confirmation dialog */}
+          <AlertDialog
+            open={removeDialogOpen}
+            onOpenChange={setRemoveDialogOpen}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove from workflow?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to remove {personName} from this
+                  workflow? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleRemoveFromWorkflow}
+                  variant="destructive"
+                >
+                  Remove
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Delete card confirmation dialog */}
+          <AlertDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete card?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to permanently delete this card for{" "}
+                  {personName}? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteCard}
+                  variant="destructive"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="note">
-                <MessageSquare className="h-4 w-4 mr-1.5" />
+              <TabsTrigger value="note" className="flex items-center gap-1.5">
+                <MessageSquare className="h-4 w-4 " />
                 Add note
               </TabsTrigger>
-              <TabsTrigger value="email">
-                <Send className="h-4 w-4 mr-1.5" />
+              <TabsTrigger value="email" className="flex items-center gap-1.5">
+                <Send className="h-4 w-4 " />
                 Send email
               </TabsTrigger>
             </TabsList>
@@ -372,13 +521,16 @@ export function CardDetailModal({
                 onChange={setEmailBody}
                 placeholder="Write your email..."
               />
-              <p className="text-xs text-muted-foreground">
-                This email will be sent to the person on this card.
-              </p>
-              <div className="flex justify-end">
+
+              <div className="flex justify-between items-center gap-2">
+                <p className="text-xs text-muted-foreground">
+                  This email will be sent to the person on this card.
+                </p>
                 <Button
                   onClick={handleSendEmail}
-                  disabled={sendingEmail || !emailSubject.trim() || !emailBody.trim()}
+                  disabled={
+                    sendingEmail || !emailSubject.trim() || !emailBody.trim()
+                  }
                 >
                   {sendingEmail ? "Sending..." : "Send email"}
                 </Button>
@@ -393,14 +545,14 @@ export function CardDetailModal({
               Activity
             </h4>
 
-            {loadingActivities ? (
+            {loadingActivities && !initialLoadComplete ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="flex gap-3 animate-pulse">
-                    <div className="size-8 rounded-full bg-muted" />
+                    <div className="size-8  bg-muted" />
                     <div className="flex-1">
-                      <div className="h-4 bg-muted rounded w-1/2 mb-2" />
-                      <div className="h-3 bg-muted rounded w-1/4" />
+                      <div className="h-4 bg-muted  w-1/2 mb-2" />
+                      <div className="h-3 bg-muted  w-1/4" />
                     </div>
                   </div>
                 ))}
@@ -410,7 +562,7 @@ export function CardDetailModal({
                 No activity yet
               </p>
             ) : (
-              <div className="space-y-4 max-h-[250px] overflow-y-auto">
+              <div className="space-y-4">
                 {activities.map((activity) => (
                   <div key={activity.id} className="flex gap-3">
                     <div className="size-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium shrink-0">
@@ -423,19 +575,34 @@ export function CardDetailModal({
                         <span className="font-medium">
                           {activity.attributes.person_name || "System"}
                         </span>{" "}
-                        {activity.attributes.comment || activity.attributes.content || activity.attributes.type}
+                        {activity.attributes.comment ||
+                          activity.attributes.type}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {formatDate(activity.attributes.created_at)}
                       </p>
-                      {activity.attributes.subject && (
-                        <div className="mt-2 border-l-2 border-muted pl-3 text-sm">
-                          <p className="font-medium">{activity.attributes.subject}</p>
-                          {activity.attributes.content && (
-                            <p className="text-muted-foreground mt-1 whitespace-pre-wrap">
-                              {activity.attributes.content}
+                      {/* Show content for emails (with subject) and notes */}
+                      {(activity.attributes.subject ||
+                        activity.attributes.content) && (
+                        <div className="mt-2 text-sm">
+                          {activity.attributes.subject && (
+                            <p className="font-medium border border-b-0 p-2 ">
+                              {activity.attributes.subject}
                             </p>
                           )}
+                          {activity.attributes.content &&
+                            (activity.attributes.content_is_html ? (
+                              <div
+                                className="p-2 border text-muted-foreground prose prose-sm max-w-none"
+                                dangerouslySetInnerHTML={{
+                                  __html: activity.attributes.content,
+                                }}
+                              />
+                            ) : (
+                              <p className="p-2 bg-blue-500/10 text-muted-foreground whitespace-pre-wrap rounded-sm">
+                                {activity.attributes.content}
+                              </p>
+                            ))}
                         </div>
                       )}
                     </div>
@@ -447,5 +614,5 @@ export function CardDetailModal({
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

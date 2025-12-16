@@ -1,19 +1,24 @@
-"use client"
+"use client";
 
-import { useEditor, EditorContent } from "@tiptap/react"
-import StarterKit from "@tiptap/starter-kit"
-import Placeholder from "@tiptap/extension-placeholder"
-import { Button } from "@/components/ui/button"
-import { Bold, Italic, List, ListOrdered, Undo, Redo } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useEffect } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import { Button } from "@/components/ui/button";
+import { Bold, Italic, List, ListOrdered, Undo, Redo } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TiptapEditorProps {
-  content: string
-  onChange: (content: string) => void
-  placeholder?: string
+  content: string;
+  onChange: (content: string) => void;
+  placeholder?: string;
 }
 
-export function TiptapEditor({ content, onChange, placeholder }: TiptapEditorProps) {
+export function TiptapEditor({
+  content,
+  onChange,
+  placeholder,
+}: TiptapEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -24,17 +29,24 @@ export function TiptapEditor({ content, onChange, placeholder }: TiptapEditorPro
     content,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      onChange(editor.getHTML());
     },
     editorProps: {
       attributes: {
         class: "prose prose-sm max-w-none focus:outline-none min-h-[150px] p-3",
       },
     },
-  })
+  });
+
+  // Sync editor content when content prop changes externally (e.g., when cleared)
+  useEffect(() => {
+    if (editor && content === "" && editor.getHTML() !== "<p></p>") {
+      editor.commands.clearContent();
+    }
+  }, [content, editor]);
 
   if (!editor) {
-    return null
+    return null;
   }
 
   return (
@@ -63,25 +75,6 @@ export function TiptapEditor({ content, onChange, placeholder }: TiptapEditorPro
           type="button"
           variant="ghost"
           size="icon-xs"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={cn(editor.isActive("bulletList") && "bg-muted")}
-        >
-          <List className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={cn(editor.isActive("orderedList") && "bg-muted")}
-        >
-          <ListOrdered className="h-3.5 w-3.5" />
-        </Button>
-        <div className="w-px h-4 bg-border mx-1" />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
         >
@@ -99,5 +92,5 @@ export function TiptapEditor({ content, onChange, placeholder }: TiptapEditorPro
       </div>
       <EditorContent editor={editor} />
     </div>
-  )
+  );
 }

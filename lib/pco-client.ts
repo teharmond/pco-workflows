@@ -1,35 +1,11 @@
 import { PlanningCenter } from "planning-center-api"
-import { getTokensFromCookies, refreshAccessToken, setTokenCookies } from "./auth"
+import { getTokensFromCookies } from "./auth"
 
 export async function getPCOClient() {
-  const { accessToken, refreshToken, expiresAt } = await getTokensFromCookies()
+  const { accessToken } = await getTokensFromCookies()
 
-  if (!accessToken || !refreshToken) {
+  if (!accessToken) {
     return null
-  }
-
-  // Check if token needs refresh (5 minutes before expiry)
-  // Also refresh if expiresAt is missing (cookie may have been cleared)
-  const needsRefresh = !expiresAt || Date.now() > parseInt(expiresAt) - 5 * 60 * 1000
-
-  if (needsRefresh && refreshToken) {
-    try {
-      const tokens = await refreshAccessToken(refreshToken)
-      await setTokenCookies(
-        tokens.access_token,
-        tokens.refresh_token,
-        tokens.expires_in
-      )
-
-      return new PlanningCenter({
-        auth: {
-          type: "bearer",
-          bearerToken: tokens.access_token,
-        },
-      })
-    } catch {
-      return null
-    }
   }
 
   return new PlanningCenter({
@@ -37,5 +13,24 @@ export async function getPCOClient() {
       type: "bearer",
       bearerToken: accessToken,
     },
+    autoPaginate: true,
   })
+}
+
+export type AuthStatus = "authenticated" | "needs_refresh" | "unauthenticated"
+
+export async function getAuthStatus(): Promise<AuthStatus> {
+  const { accessToken, refreshToken, expiresAt } = await getTokensFromCookies()
+
+  // If we have a valid access token, we're authenticated
+  if (accessToken && expiresAt && Date.now() < parseInt(expiresAt)) {
+    return "authenticated"
+  }
+
+  // If we have a refresh token, we can try to refresh
+  if (refreshToken) {
+    return "needs_refresh"
+  }
+
+  return "unauthenticated"
 }

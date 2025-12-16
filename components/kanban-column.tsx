@@ -1,26 +1,26 @@
-"use client"
+"use client";
 
-import { useDroppable } from "@dnd-kit/core"
-import type { PCOWorkflowStep, PCOWorkflowCard } from "@/lib/types"
-import { KanbanCard } from "./kanban-card"
-import { cn } from "@/lib/utils"
+import { useDroppable } from "@dnd-kit/core";
+import type { PCOWorkflowStep, PCOWorkflowCard } from "@/lib/types";
+import { KanbanCard } from "./kanban-card";
+import { cn } from "@/lib/utils";
 
 interface KanbanColumnProps {
-  step: PCOWorkflowStep
-  cards: PCOWorkflowCard[]
-  onCardClick?: (card: PCOWorkflowCard) => void
+  step: PCOWorkflowStep;
+  cards: PCOWorkflowCard[];
+  onCardClick?: (card: PCOWorkflowCard) => void;
 }
 
 export function KanbanColumn({ step, cards, onCardClick }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: step.id,
-  })
+  });
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "min-w-[300px] w-[300px] bg-muted/50 rounded-lg p-4 flex flex-col",
+        "min-w-[300px] w-[300px] bg-muted/50  p-4 flex flex-col",
         isOver && "ring-2 ring-primary"
       )}
     >
@@ -33,7 +33,11 @@ export function KanbanColumn({ step, cards, onCardClick }: KanbanColumnProps) {
 
       <div className="flex flex-col gap-2 flex-1 min-h-[200px]">
         {cards.map((card) => (
-          <KanbanCard key={card.id} card={card} onClick={() => onCardClick?.(card)} />
+          <KanbanCard
+            key={card.id}
+            card={card}
+            onClick={() => onCardClick?.(card)}
+          />
         ))}
 
         {cards.length === 0 && (
@@ -43,5 +47,5 @@ export function KanbanColumn({ step, cards, onCardClick }: KanbanColumnProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import type { PCOWorkflow, PCOWorkflowCategory } from "@/lib/types";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -41,6 +42,7 @@ export function WorkflowsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pinnedIds, setPinnedIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setPinnedIds(getPinnedWorkflows());
@@ -106,10 +108,20 @@ export function WorkflowsList() {
   };
 
   const { pinnedWorkflows, unpinnedWorkflows } = useMemo(() => {
+    // Filter workflows based on search
+    const filteredWorkflows = workflows.filter((workflow) => {
+      return (
+        searchQuery === "" ||
+        workflow.attributes.name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      );
+    });
+
     const pinned: PCOWorkflow[] = [];
     const unpinned: PCOWorkflow[] = [];
 
-    workflows.forEach((workflow) => {
+    filteredWorkflows.forEach((workflow) => {
       if (pinnedIds.includes(workflow.id)) {
         pinned.push(workflow);
       } else {
@@ -120,7 +132,7 @@ export function WorkflowsList() {
     pinned.sort((a, b) => pinnedIds.indexOf(a.id) - pinnedIds.indexOf(b.id));
 
     return { pinnedWorkflows: pinned, unpinnedWorkflows: unpinned };
-  }, [workflows, pinnedIds]);
+  }, [workflows, pinnedIds, searchQuery]);
 
   if (loading) {
     return (
@@ -199,8 +211,24 @@ export function WorkflowsList() {
     );
   };
 
+  const hasFilters = searchQuery !== "";
+  const totalFiltered = pinnedWorkflows.length + unpinnedWorkflows.length;
+
   return (
     <div className="space-y-4">
+      <Input
+        type="text"
+        placeholder="Search workflows..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+
+      {hasFilters && totalFiltered === 0 && (
+        <div className="text-center py-10">
+          <p className="text-muted-foreground">No workflows match your filters</p>
+        </div>
+      )}
+
       {pinnedWorkflows.length > 0 && (
         <div className="space-y-3">
           <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
