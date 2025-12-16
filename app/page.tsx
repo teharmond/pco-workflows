@@ -1,65 +1,118 @@
-import Image from "next/image";
+import { getTokensFromCookies } from "@/lib/auth";
+import { LoginButton } from "@/components/login-button";
+import { WorkflowsList } from "@/components/workflows-list";
+import {
+  Cards,
+  Flowforthsvg,
+  RaycastIcon,
+  NpmIcon,
+  ChurchkitIcon,
+} from "@/components/icons";
+import Link from "next/link";
 
-export default function Home() {
+const projects = [
+  {
+    svg: <Flowforthsvg className="h-3.5 w-3.5" />,
+    title: "Flowforth",
+    link: "https://flowforth.co",
+  },
+  {
+    svg: <RaycastIcon className="h-3.5 w-3.5" />,
+    title: "PCO Docs Raycast Extension",
+    link: "https://www.raycast.com/thomas.harmond/planning-center-api-docs",
+  },
+  {
+    svg: <NpmIcon className="h-3.5 w-3.5" />,
+    title: "PCO NPM Package",
+    link: "https://github.com/teharmond/planning-center-api",
+    status: "work-in-progress",
+  },
+  {
+    svg: <ChurchkitIcon className="h-3.5 w-3.5" />,
+    title: "churchkit",
+    link: "https://churchkit.io",
+    status: "work-in-progress",
+  },
+];
+
+export default async function Page() {
+  const { accessToken } = await getTokensFromCookies();
+  const isLoggedIn = !!accessToken;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen ">
+      {isLoggedIn ? (
+        <div className="max-w-4xl mx-auto py-6">
+          <div className="flex items-center  justify-between mb-8">
+            <h1 className=" font-semibold tracking-tight">Kanban Workflows</h1>
+            <LoginButton isLoggedIn={isLoggedIn} />
+          </div>
+          <WorkflowsList />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      ) : (
+        <div className=" md:py-32 py-6  max-w-xl mx-auto">
+          <div className="flex w-full flex-col gap-8 mb-4">
+            <div className="flex px-4 mb-2 md:mb-8 justify-between items-center">
+              <Cards className="h-7 w-7" />
+
+              <LoginButton isLoggedIn={isLoggedIn} />
+            </div>
+            <div className=" flex px-4 flex-col gap-2 items-start">
+              <span className="font-semibold tracking-tight">
+                Kanban Workflows
+              </span>
+              <p className="text-foreground/90 text-sm">
+                A simple way to visualize and manage your Planning Center
+                workflows.
+              </p>
+            </div>
+            <div className=" flex px-4 flex-col gap-2 items-start">
+              <span className="font-semibold tracking-tight">About</span>
+              <p className="text-foreground/90 text-sm">
+                This isn&apos;t a &quot;product&quot;. It doesn&apos;t cost
+                money, it doesn&apos;t store your data, and it isn&apos;t filled
+                with fancy features. It&apos;s simply a way to visualize and
+                manage your Planning Center workflows and cards in the form of a
+                kanban board.
+              </p>
+            </div>
+            <div className=" flex  flex-col gap-2 items-start w-full">
+              <span className="font-semibold tracking-tight px-4">
+                Other Projects
+              </span>
+              <p className="text-foreground/90 px-4 text-sm">
+                Feel free to check out some other projects I&apos;m a part of.
+              </p>
+              <div className="flex flex-col px-2 w-full">
+                {projects.map((project, index) => (
+                  <a href={project.link} key={index} target="_blank">
+                    <div className="flex cursor-pointer items-center gap-2 text-sm rounded-md p-1 px-2 font-medium transition-colors duration-200 hover:bg-blue-100 hover:text-blue-600">
+                      {project.svg}
+                      {project.title}
+                      {project.status === "work-in-progress" && (
+                        <p className="text-muted-foreground text-xs font-light">
+                          (work in progress)
+                        </p>
+                      )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+            <hr />
+            <div className="flex justify-between items-center px-4">
+              <p className=" text-muted-foreground text-xs">
+                Forever in beta (probably)
+              </p>
+              <p className="text-muted-foreground text-xs">
+                <Link href="mailto:hey@thomasharmond.com">
+                  hey@thomasharmond.com
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+      )}
+    </main>
   );
 }
