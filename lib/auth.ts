@@ -95,7 +95,7 @@ export async function setTokenCookies(
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: expiresIn,
+    maxAge: 60 * 60 * 24 * 30, // 30 days - same as refresh token
   })
 }
 

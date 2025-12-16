@@ -9,9 +9,10 @@ export async function getPCOClient() {
   }
 
   // Check if token needs refresh (5 minutes before expiry)
-  const needsRefresh = expiresAt && Date.now() > parseInt(expiresAt) - 5 * 60 * 1000
+  // Also refresh if expiresAt is missing (cookie may have been cleared)
+  const needsRefresh = !expiresAt || Date.now() > parseInt(expiresAt) - 5 * 60 * 1000
 
-  if (needsRefresh) {
+  if (needsRefresh && refreshToken) {
     try {
       const tokens = await refreshAccessToken(refreshToken)
       await setTokenCookies(

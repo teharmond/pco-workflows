@@ -10,9 +10,10 @@ import { GripVertical, User, UserCheck } from "lucide-react"
 interface KanbanCardProps {
   card: PCOWorkflowCard
   isDragging?: boolean
+  onClick?: () => void
 }
 
-export function KanbanCard({ card, isDragging: isDraggingOverlay }: KanbanCardProps) {
+export function KanbanCard({ card, isDragging: isDraggingOverlay, onClick }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: card.id,
   })
@@ -25,22 +26,33 @@ export function KanbanCard({ card, isDragging: isDraggingOverlay }: KanbanCardPr
     ? `${card.assignee.attributes.first_name} ${card.assignee.attributes.last_name}`
     : "Unassigned"
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger click if we're dragging
+    if (isDragging) return
+    // Don't trigger if clicking the drag handle
+    if ((e.target as HTMLElement).closest('[data-drag-handle]')) return
+    onClick?.()
+  }
+
   return (
     <Card
       ref={setNodeRef}
       size="sm"
+      onClick={handleCardClick}
       className={cn(
-        "cursor-grab active:cursor-grabbing bg-card shadow-sm",
+        "bg-card shadow-sm",
         isDragging && "opacity-0",
-        isDraggingOverlay && "shadow-lg rotate-2"
+        isDraggingOverlay && "shadow-lg rotate-2",
+        onClick && "cursor-pointer hover:bg-muted/50 transition-colors"
       )}
     >
       <CardHeader className="border-b-0">
         <div className="flex items-start gap-2">
           <button
+            data-drag-handle
             {...attributes}
             {...listeners}
-            className="mt-0.5 text-muted-foreground hover:text-foreground touch-none"
+            className="mt-0.5 text-muted-foreground hover:text-foreground touch-none cursor-grab active:cursor-grabbing"
           >
             <GripVertical className="h-4 w-4" />
           </button>

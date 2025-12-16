@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils"
 interface KanbanColumnProps {
   step: PCOWorkflowStep
   cards: PCOWorkflowCard[]
+  onCardClick?: (card: PCOWorkflowCard) => void
 }
 
-export function KanbanColumn({ step, cards }: KanbanColumnProps) {
+export function KanbanColumn({ step, cards, onCardClick }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: step.id,
   })
@@ -32,7 +33,7 @@ export function KanbanColumn({ step, cards }: KanbanColumnProps) {
 
       <div className="flex flex-col gap-2 flex-1 min-h-[200px]">
         {cards.map((card) => (
-          <KanbanCard key={card.id} card={card} />
+          <KanbanCard key={card.id} card={card} onClick={() => onCardClick?.(card)} />
         ))}
 
         {cards.length === 0 && (

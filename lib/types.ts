@@ -77,3 +77,31 @@ export interface WorkflowDetailData {
   steps: PCOWorkflowStep[]
   cards: PCOWorkflowCard[]
 }
+
+export interface PCOWorkflowCardActivity {
+  type: string
+  id: string
+  attributes: {
+    comment?: string
+    content?: string
+    form_submission_url?: string
+    automation_url?: string
+    person_avatar_url?: string
+    person_name?: string
+    reassigned_to_avatar_url?: string
+    reassigned_to_name?: string
+    subject?: string
+    type: string
+    content_is_html: boolean
+    created_at: string
+  }
+}
+
+export interface PCOWorkflowCardNote {
+  type: string
+  id: string
+  attributes: {
+    note: string
+    created_at: string
+  }
+}

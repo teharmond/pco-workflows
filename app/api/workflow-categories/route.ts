@@ -9,7 +9,8 @@ export async function GET() {
   }
 
   try {
-    const response = await client.people.workflowCategory().list()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await (client.people as any).workflowCategories().list()
     return NextResponse.json(response)
   } catch (error) {
     console.error("Failed to fetch workflow categories:", error)

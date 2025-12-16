@@ -16,6 +16,25 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import type { PCOWorkflow, PCOWorkflowStep, PCOWorkflowCard, WorkflowDetailData } from "@/lib/types"
 import { KanbanColumn } from "./kanban-column"
 import { KanbanCard } from "./kanban-card"
+import { CardDetailModal } from "./card-detail-modal"
+import { ListView } from "./list-view"
+import { Button } from "@/components/ui/button"
+import { LayoutGrid, List } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+type ViewMode = "kanban" | "list"
+
+const VIEW_MODE_KEY = "pco-workflow-view-mode"
+
+function getStoredViewMode(): ViewMode {
+  if (typeof window === "undefined") return "kanban"
+  const stored = localStorage.getItem(VIEW_MODE_KEY)
+  return stored === "list" ? "list" : "kanban"
+}
+
+function setStoredViewMode(mode: ViewMode) {
+  localStorage.setItem(VIEW_MODE_KEY, mode)
+}
 
 interface KanbanBoardProps {
   workflowId: string
@@ -28,6 +47,31 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeCard, setActiveCard] = useState<PCOWorkflowCard | null>(null)
+  const [selectedCard, setSelectedCard] = useState<PCOWorkflowCard | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>("kanban")
+  const [selectedStepId, setSelectedStepId] = useState<string | null>(null)
+
+  // Load view mode from localStorage on mount
+  useEffect(() => {
+    setViewMode(getStoredViewMode())
+  }, [])
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode)
+    setStoredViewMode(mode)
+    // Auto-select first step when switching to list view
+    if (mode === "list" && steps.length > 0 && !selectedStepId) {
+      setSelectedStepId(steps[0].id)
+    }
+  }
+
+  // Set first step when steps load and we're in list view
+  useEffect(() => {
+    if (viewMode === "list" && steps.length > 0 && !selectedStepId) {
+      setSelectedStepId(steps[0].id)
+    }
+  }, [viewMode, steps, selectedStepId])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -74,6 +118,53 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
     },
     [steps]
   )
+
+  const getStepName = useCallback(
+    (stepId?: string) => {
+      if (!stepId) return undefined
+      const step = steps.find((s) => s.id === stepId)
+      return step?.attributes.name
+    },
+    [steps]
+  )
+
+  const getNextStepName = useCallback(
+    (stepId?: string) => {
+      if (!stepId) return undefined
+      const currentIndex = steps.findIndex((s) => s.id === stepId)
+      if (currentIndex === -1 || currentIndex >= steps.length - 1) return undefined
+      return steps[currentIndex + 1]?.attributes.name
+    },
+    [steps]
+  )
+
+  const isLastStep = useCallback(
+    (stepId?: string) => {
+      if (!stepId) return false
+      const currentIndex = steps.findIndex((s) => s.id === stepId)
+      return currentIndex === steps.length - 1
+    },
+    [steps]
+  )
+
+  const refetchData = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/workflows/${workflowId}`)
+      if (response.ok) {
+        const data: WorkflowDetailData = await response.json()
+        setWorkflow(data.workflow)
+        setSteps(data.steps)
+        setCards(data.cards)
+      }
+    } catch (err) {
+      console.error("Failed to refetch data:", err)
+    }
+  }, [workflowId])
+
+  const handleCardClick = (card: PCOWorkflowCard) => {
+    setSelectedCard(card)
+    setModalOpen(true)
+  }
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
@@ -167,28 +258,79 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-8">{workflow?.attributes.name}</h1>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {steps.map((step) => (
-            <KanbanColumn
-              key={step.id}
-              step={step}
-              cards={getCardsByStep(step.id)}
-            />
-          ))}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-bold">{workflow?.attributes.name}</h1>
+        <div className="flex items-center gap-1 border rounded-lg p-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleViewModeChange("kanban")}
+            className={cn(
+              "gap-2",
+              viewMode === "kanban" && "bg-muted"
+            )}
+          >
+            <LayoutGrid className="h-4 w-4" />
+            Kanban
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleViewModeChange("list")}
+            className={cn(
+              "gap-2",
+              viewMode === "list" && "bg-muted"
+            )}
+          >
+            <List className="h-4 w-4" />
+            List
+          </Button>
         </div>
+      </div>
 
-        <DragOverlay>
-          {activeCard ? <KanbanCard card={activeCard} isDragging /> : null}
-        </DragOverlay>
-      </DndContext>
+      {viewMode === "kanban" ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {steps.map((step) => (
+              <KanbanColumn
+                key={step.id}
+                step={step}
+                cards={getCardsByStep(step.id)}
+                onCardClick={handleCardClick}
+              />
+            ))}
+          </div>
+
+          <DragOverlay>
+            {activeCard ? <KanbanCard card={activeCard} isDragging /> : null}
+          </DragOverlay>
+        </DndContext>
+      ) : (
+        <ListView
+          steps={steps}
+          cards={cards}
+          selectedStepId={selectedStepId}
+          onSelectStep={setSelectedStepId}
+          onCardClick={handleCardClick}
+        />
+      )}
+
+      <CardDetailModal
+        card={selectedCard}
+        workflowId={workflowId}
+        workflowName={workflow?.attributes.name}
+        currentStepName={getStepName(selectedCard?.currentStepId)}
+        nextStepName={getNextStepName(selectedCard?.currentStepId)}
+        isLastStep={isLastStep(selectedCard?.currentStepId)}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onCardUpdated={refetchData}
+      />
     </div>
   )
 }
