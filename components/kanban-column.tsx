@@ -9,22 +9,9 @@ interface KanbanColumnProps {
   step: PCOWorkflowStep;
   cards: PCOWorkflowCard[];
   onCardClick?: (card: PCOWorkflowCard) => void;
-  isLoading?: boolean;
 }
 
-function LoadingCard() {
-  return (
-    <div className="bg-background border p-3 animate-pulse">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="size-8 rounded-full bg-muted" />
-        <div className="h-4 bg-muted rounded w-24" />
-      </div>
-      <div className="h-3 bg-muted rounded w-16" />
-    </div>
-  );
-}
-
-export function KanbanColumn({ step, cards, onCardClick, isLoading }: KanbanColumnProps) {
+export function KanbanColumn({ step, cards, onCardClick }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: step.id,
   });
@@ -40,7 +27,7 @@ export function KanbanColumn({ step, cards, onCardClick, isLoading }: KanbanColu
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-sm">{step.attributes.name}</h3>
         <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-          {isLoading ? "..." : cards.length}
+          {cards.length}
         </span>
       </div>
 
@@ -53,9 +40,7 @@ export function KanbanColumn({ step, cards, onCardClick, isLoading }: KanbanColu
           />
         ))}
 
-        {isLoading && <LoadingCard />}
-
-        {!isLoading && cards.length === 0 && (
+        {cards.length === 0 && (
           <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
             No cards
           </div>

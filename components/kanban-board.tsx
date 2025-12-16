@@ -102,6 +102,64 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
     })
   );
 
+  // Fetch person details for a batch of cards
+  const fetchPersonDetails = useCallback(async (cardsToFetch: PCOWorkflowCard[]) => {
+    // Collect unique person IDs that need fetching
+    const personIds = new Set<string>();
+    for (const card of cardsToFetch) {
+      const personId = card.relationships?.person?.data?.id;
+      const assigneeId = card.relationships?.assignee?.data?.id;
+      if (personId && !card.person) personIds.add(personId);
+      if (assigneeId && !card.assignee) personIds.add(assigneeId);
+    }
+
+    if (personIds.size === 0) return;
+
+    // Fetch all people in parallel (batched)
+    const peopleMap = new Map<string, unknown>();
+    const BATCH_SIZE = 10;
+    const ids = Array.from(personIds);
+
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+      const batch = ids.slice(i, i + BATCH_SIZE);
+      const results = await Promise.all(
+        batch.map(async (id) => {
+          try {
+            const res = await fetch(`/api/people/${id}`);
+            if (res.ok) {
+              const data = await res.json();
+              return { id, data };
+            }
+          } catch {
+            // Ignore errors
+          }
+          return { id, data: null };
+        })
+      );
+
+      for (const { id, data } of results) {
+        if (data) peopleMap.set(id, data);
+      }
+
+      // Update cards with fetched person data after each batch
+      setCards((prev) =>
+        prev.map((card) => {
+          const personId = card.relationships?.person?.data?.id;
+          const assigneeId = card.relationships?.assignee?.data?.id;
+
+          const updatedCard = { ...card };
+          if (personId && peopleMap.has(personId) && !card.person) {
+            updatedCard.person = peopleMap.get(personId) as PCOWorkflowCard["person"];
+          }
+          if (assigneeId && peopleMap.has(assigneeId) && !card.assignee) {
+            updatedCard.assignee = peopleMap.get(assigneeId) as PCOWorkflowCard["assignee"];
+          }
+          return updatedCard;
+        })
+      );
+    }
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -113,6 +171,9 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
         setWorkflow(data.workflow);
         setSteps(data.steps);
         setCards(data.cards);
+
+        // Start fetching person details in background
+        fetchPersonDetails(data.cards);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -121,7 +182,7 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
     }
 
     fetchData();
-  }, [workflowId]);
+  }, [workflowId, fetchPersonDetails]);
 
   const getCardsByStep = useCallback(
     (stepId: string) => {
@@ -360,7 +421,6 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
                   step={step}
                   cards={getCardsByStep(step.id)}
                   onCardClick={handleCardClick}
-                  isLoading={false}
                 />
               ))}
             </div>
