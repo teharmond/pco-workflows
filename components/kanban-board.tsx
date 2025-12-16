@@ -177,6 +177,7 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
 
   const refetchData = useCallback(async () => {
     try {
+      // Use non-streaming for quick refetch after actions
       const response = await fetch(`/api/workflows/${workflowId}`);
       if (response.ok) {
         const data: WorkflowDetailData = await response.json();
@@ -359,6 +360,7 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
                   step={step}
                   cards={getCardsByStep(step.id)}
                   onCardClick={handleCardClick}
+                  isLoading={false}
                 />
               ))}
             </div>

@@ -54,8 +54,8 @@ importers:
         specifier: 16.0.10
         version: 16.0.10(@babel/core@7.28.5)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       planning-center-api:
-        specifier: ^0.0.13
-        version: 0.0.13
+        specifier: ^0.0.14
+        version: 0.0.14
       radix-ui:
         specifier: ^1.4.3
         version: 1.4.3(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -3373,8 +3373,8 @@ packages:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
 
-  planning-center-api@0.0.13:
-    resolution: {integrity: sha512-VtecRZjI3DNCr8H51geYU2Fxwh/GOhi4/zsxSn46VVkKAPFUSg9uCn7NzKL2ZaIrkgqTBPr+5GobNEfYKGMYaw==}
+  planning-center-api@0.0.14:
+    resolution: {integrity: sha512-kKrhhVxVbohnKN2VSVp0mItnYcsvU75dV0yjq+FDOGxRw0dyOvMq0F6Vts/fm+QGO7bd296O8XZ4eDRx92CwYQ==}
 
   possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
@@ -7532,7 +7532,7 @@ snapshots:
 
   pkce-challenge@5.0.1: {}
 
-  planning-center-api@0.0.13:
+  planning-center-api@0.0.14:
     dependencies:
       dotenv: 17.2.3
 
