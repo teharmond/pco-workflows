@@ -8,6 +8,7 @@ import {
   RaycastIcon,
   NpmIcon,
   ChurchkitIcon,
+  Parable,
 } from "@/components/icons";
 import Link from "next/link";
 
@@ -103,6 +104,18 @@ export default async function Page() {
                     </div>
                   </a>
                 ))}
+              </div>
+
+              <p className="text-foreground/90 px-4 text-sm mt-4">
+                And here&apos;s a cool project a friend is working on.
+              </p>
+              <div className="flex flex-col px-2 w-full">
+                <a href="https://getparable.io/" target="_blank">
+                  <div className="flex cursor-pointer items-center gap-2 text-sm rounded-md p-1 px-2 font-medium transition-colors duration-200 hover:bg-blue-100 hover:text-blue-600">
+                    <Parable className="h-3.5 w-3.5" />
+                    Parable
+                  </div>
+                </a>
               </div>
             </div>
             <hr />
