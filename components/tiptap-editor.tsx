@@ -50,7 +50,7 @@ export function TiptapEditor({
   }
 
   return (
-    <div className="border rounded-md overflow-hidden">
+    <div className="border  overflow-hidden">
       <div className="border-b bg-muted/30 p-1 flex items-center gap-0.5">
         <Button
           type="button"
