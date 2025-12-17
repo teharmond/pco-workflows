@@ -24,7 +24,7 @@
     "cmdk": "^1.1.1",
     "lucide-react": "^0.561.0",
     "next": "16.0.10",
-    "planning-center-api": "^0.0.14",
+    "planning-center-api": "^0.0.17",
     "radix-ui": "^1.4.3",
     "react": "19.2.1",
     "react-dom": "19.2.1",

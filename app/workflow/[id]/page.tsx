@@ -2,9 +2,6 @@ import { getAuthStatus } from "@/lib/pco-client";
 import { redirect } from "next/navigation";
 import { KanbanBoard } from "@/components/kanban-board";
 import { AuthRefresh } from "@/components/auth-refresh";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 
 interface WorkflowPageProps {
   params: Promise<{ id: string }>;
