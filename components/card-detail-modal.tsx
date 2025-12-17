@@ -586,20 +586,20 @@ export function CardDetailModal({
                         activity.attributes.content) && (
                         <div className="mt-2 text-sm">
                           {activity.attributes.subject && (
-                            <p className="font-medium border border-b-0 p-2 ">
+                            <p className="font-medium border border-b-0 p-2 wrap-break-word">
                               {activity.attributes.subject}
                             </p>
                           )}
                           {activity.attributes.content &&
                             (activity.attributes.content_is_html ? (
                               <div
-                                className="p-2 border text-muted-foreground prose prose-sm max-w-none"
+                                className="p-2 border text-muted-foreground prose prose-sm max-w-none wrap-break-word [&_a]:break-all"
                                 dangerouslySetInnerHTML={{
                                   __html: activity.attributes.content,
                                 }}
                               />
                             ) : (
-                              <p className="p-2 bg-blue-500/10 text-muted-foreground whitespace-pre-wrap rounded-sm">
+                              <p className="p-2 bg-blue-500/10 text-muted-foreground whitespace-pre-wrap rounded-sm wrap-anywhere">
                                 {activity.attributes.content}
                               </p>
                             ))}
