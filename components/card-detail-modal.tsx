@@ -30,7 +30,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { PCOWorkflowCard, PCOWorkflowCardActivity } from "@/lib/types";
+import type {
+  PCOWorkflowCard,
+  PCOWorkflowCardActivity,
+  PCOMessageTemplate,
+  PCONoteCategory,
+} from "@/lib/types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Send,
   MessageSquare,
@@ -41,12 +56,14 @@ import {
   FastForward,
   UserX,
   Trash2,
+  ExternalLink,
 } from "lucide-react";
 
 interface CardDetailModalProps {
   card: PCOWorkflowCard | null;
   workflowId: string;
   workflowName?: string;
+  currentStepId?: string;
   currentStepName?: string;
   nextStepName?: string;
   isFirstStep?: boolean;
@@ -84,6 +101,7 @@ export function CardDetailModal({
   card,
   workflowId,
   workflowName,
+  currentStepId,
   currentStepName,
   nextStepName,
   isFirstStep,
@@ -104,6 +122,12 @@ export function CardDetailModal({
   const [completing, setCompleting] = useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [templates, setTemplates] = useState<PCOMessageTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [saveToProfile, setSaveToProfile] = useState(false);
+  const [noteCategories, setNoteCategories] = useState<PCONoteCategory[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [loadingCategories, setLoadingCategories] = useState(false);
 
   const personId = card?.relationships?.person?.data?.id;
   const personName = card?.person
@@ -126,6 +150,65 @@ export function CardDetailModal({
       setInitialLoadComplete(false);
     }
   }, [open]);
+
+  // Fetch templates when email tab is active
+  useEffect(() => {
+    if (activeTab === "email" && templates.length === 0 && !loadingTemplates) {
+      fetchTemplates();
+    }
+  }, [activeTab, templates.length, loadingTemplates]);
+
+  // Fetch note categories when checkbox is checked
+  useEffect(() => {
+    if (saveToProfile && noteCategories.length === 0 && !loadingCategories) {
+      fetchNoteCategories();
+    }
+  }, [saveToProfile, noteCategories.length, loadingCategories]);
+
+  async function fetchNoteCategories() {
+    setLoadingCategories(true);
+    try {
+      const response = await fetch("/api/note-categories");
+      if (response.ok) {
+        const data = await response.json();
+        setNoteCategories(data.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch note categories:", error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  }
+
+  async function fetchTemplates() {
+    setLoadingTemplates(true);
+    try {
+      const response = await fetch("/api/message-templates");
+      if (response.ok) {
+        const data = await response.json();
+        setTemplates(data.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch templates:", error);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }
+
+  function handleTemplateSelect(templateId: string) {
+    if (templateId === "manage") {
+      window.open(
+        "https://people.planningcenteronline.com/email_settings",
+        "_blank"
+      );
+      return;
+    }
+    const template = templates.find((t) => t.id === templateId);
+    if (template) {
+      setEmailSubject(template.attributes.subject);
+      setEmailBody(template.attributes.body);
+    }
+  }
 
   async function fetchActivities(isInitialLoad = false) {
     if (!card || !personId) return;
@@ -155,17 +238,32 @@ export function CardDetailModal({
 
     setSavingNote(true);
     try {
+      const body: {
+        personId: string;
+        note: string;
+        note_category_id?: string;
+      } = {
+        personId,
+        note: note.trim(),
+      };
+
+      if (saveToProfile && selectedCategoryId) {
+        body.note_category_id = selectedCategoryId;
+      }
+
       const response = await fetch(
         `/api/workflows/${workflowId}/cards/${card.id}/notes`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ personId, note: note.trim() }),
+          body: JSON.stringify(body),
         }
       );
 
       if (response.ok) {
         setNote("");
+        setSaveToProfile(false);
+        setSelectedCategoryId("");
         await fetchActivities();
       }
     } catch (error) {
@@ -357,9 +455,27 @@ export function CardDetailModal({
               <div className="size-12  bg-muted flex items-center justify-center text-lg font-medium">
                 {getInitials(personName)}
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="font-semibold">{personName}</p>
               </div>
+              {currentStepId && card?.relationships?.assignee?.data?.id && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    window.open(
+                      `https://people.planningcenteronline.com/workflows/${workflowId}/steps/${currentStepId}/assignees/${card.relationships?.assignee?.data?.id}/ready/cards/${card.id}`,
+                      "_blank"
+                    )
+                  }
+                  title="Open Card in Planning Center"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />{" "}
+                  <span className="hidden sm:block">
+                    Open in Planning Center
+                  </span>
+                </Button>
+              )}
             </div>
 
             <div className="border-t pt-3 mt-3 space-y-2">
@@ -500,10 +616,52 @@ export function CardDetailModal({
                 onChange={(e) => setNote(e.target.value)}
                 rows={4}
               />
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="save-to-profile"
+                  checked={saveToProfile}
+                  onCheckedChange={(checked) =>
+                    setSaveToProfile(checked === true)
+                  }
+                />
+                <Label
+                  htmlFor="save-to-profile"
+                  className="text-sm cursor-pointer"
+                >
+                  Save note to profile
+                </Label>
+              </div>
+              {saveToProfile && (
+                <Select
+                  value={selectedCategoryId}
+                  onValueChange={setSelectedCategoryId}
+                >
+                  <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="Choose a note category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {noteCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.attributes.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {saveToProfile && (
+                <p className="text-xs text-muted-foreground italic">
+                  This note will be visible to anyone who can see this card or
+                  note category.
+                </p>
+              )}
               <div className="flex justify-end">
                 <Button
                   onClick={handleSaveNote}
-                  disabled={savingNote || !note.trim()}
+                  disabled={
+                    savingNote ||
+                    !note.trim() ||
+                    (saveToProfile && !selectedCategoryId)
+                  }
                 >
                   {savingNote ? "Saving..." : "Save note"}
                 </Button>
@@ -511,11 +669,34 @@ export function CardDetailModal({
             </TabsContent>
 
             <TabsContent value="email" className="space-y-3">
-              <Input
-                placeholder="Subject"
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-              />
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Subject"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  className="flex-1"
+                />
+                <Select onValueChange={handleTemplateSelect}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Templates" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none" disabled>
+                      No template
+                    </SelectItem>
+                    {templates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.attributes.subject}
+                      </SelectItem>
+                    ))}
+                    <SelectSeparator />
+                    <SelectItem value="manage">
+                      <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                      Manage templates...
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <TiptapEditor
                 content={emailBody}
                 onChange={setEmailBody}
@@ -593,7 +774,7 @@ export function CardDetailModal({
                           {activity.attributes.content &&
                             (activity.attributes.content_is_html ? (
                               <div
-                                className="p-2 border text-muted-foreground prose prose-sm max-w-none wrap-break-word [&_a]:break-all"
+                                className="p-2 border text-muted-foreground prose prose-sm max-w-none wrap-break-word [&_a]:break-all [&_h1]:text-xl [&_h1]:font-normal [&_h1]:mt-0 [&_h1]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5"
                                 dangerouslySetInnerHTML={{
                                   __html: activity.attributes.content,
                                 }}

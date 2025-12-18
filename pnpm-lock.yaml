@@ -23,6 +23,9 @@ importers:
       '@radix-ui/react-slot':
         specifier: ^1.2.4
         version: 1.2.4(@types/react@19.2.7)(react@19.2.1)
+      '@tiptap/extension-link':
+        specifier: ^3.13.0
+        version: 3.13.0(@tiptap/core@3.13.0(@tiptap/pm@3.13.0))(@tiptap/pm@3.13.0)
       '@tiptap/extension-placeholder':
         specifier: ^3.13.0
         version: 3.13.0(@tiptap/extensions@3.13.0(@tiptap/core@3.13.0(@tiptap/pm@3.13.0))(@tiptap/pm@3.13.0))
@@ -54,8 +57,8 @@ importers:
         specifier: 16.0.10
         version: 16.0.10(@babel/core@7.28.5)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       planning-center-api:
-        specifier: ^0.0.17
-        version: 0.0.17
+        specifier: ^0.0.19
+        version: 0.0.19
       radix-ui:
         specifier: ^1.4.3
         version: 1.4.3(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -74,6 +77,9 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
+      zod:
+        specifier: ^4.2.1
+        version: 4.2.1
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4
@@ -3373,8 +3379,8 @@ packages:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
 
-  planning-center-api@0.0.17:
-    resolution: {integrity: sha512-B09/ZC/FFOyLF4tmKNOKoKCcBl9MOFH6UhRBUay8SE10f78HXHCGtmsTIBspELri0LAPzOvRfBjUNQdhtpQ1pg==}
+  planning-center-api@0.0.19:
+    resolution: {integrity: sha512-/Cz9IGI0ggwudbzD1LDk0d4NvzRWG/44rtSpwTlnAEVpKAHReNiF5QvDAdv5q2mW7UXakx0Y1vAOfbNMcZvhKw==}
 
   possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
@@ -4084,8 +4090,8 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.2.0:
-    resolution: {integrity: sha512-Bd5fw9wlIhtqCCxotZgdTOMwGm1a0u75wARVEY9HMs1X17trvA/lMi4+MGK5EUfYkXVTbX8UDiDKW4OgzHVUZw==}
+  zod@4.2.1:
+    resolution: {integrity: sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw==}
 
 snapshots:
 
@@ -6523,8 +6529,8 @@ snapshots:
       '@babel/parser': 7.28.5
       eslint: 9.39.2(jiti@2.6.1)
       hermes-parser: 0.25.1
-      zod: 4.2.0
-      zod-validation-error: 4.0.2(zod@4.2.0)
+      zod: 4.2.1
+      zod-validation-error: 4.0.2(zod@4.2.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -7532,7 +7538,7 @@ snapshots:
 
   pkce-challenge@5.0.1: {}
 
-  planning-center-api@0.0.17:
+  planning-center-api@0.0.19:
     dependencies:
       dotenv: 17.2.3
 
@@ -8478,10 +8484,10 @@ snapshots:
     dependencies:
       zod: 3.25.76
 
-  zod-validation-error@4.0.2(zod@4.2.0):
+  zod-validation-error@4.0.2(zod@4.2.1):
     dependencies:
-      zod: 4.2.0
+      zod: 4.2.1
 
   zod@3.25.76: {}
 
-  zod@4.2.0: {}
+  zod@4.2.1: {}

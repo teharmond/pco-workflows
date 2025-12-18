@@ -105,3 +105,33 @@ export interface PCOWorkflowCardNote {
     created_at: string
   }
 }
+
+export interface OverdueCardWithDetails extends PCOWorkflowCard {
+  currentStep?: PCOWorkflowStep | null
+}
+
+export interface OverdueWorkflowData {
+  workflow: PCOWorkflow
+  steps: PCOWorkflowStep[]
+  cards: OverdueCardWithDetails[]
+}
+
+export interface PCOMessageTemplate {
+  type: string
+  id: string
+  attributes: {
+    body: string
+    subject: string
+  }
+}
+
+export interface PCONoteCategory {
+  type: string
+  id: string
+  attributes: {
+    name: string
+    locked: boolean
+    created_at: string
+    updated_at: string
+  }
+}

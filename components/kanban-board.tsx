@@ -382,6 +382,7 @@ export function KanbanBoard({ workflowId }: KanbanBoardProps) {
           card={selectedCard}
           workflowId={workflowId}
           workflowName={workflow?.attributes.name}
+          currentStepId={selectedCard?.currentStepId}
           currentStepName={getStepName(selectedCard?.currentStepId)}
           nextStepName={getNextStepName(selectedCard?.currentStepId)}
           isFirstStep={isFirstStep(selectedCard?.currentStepId)}

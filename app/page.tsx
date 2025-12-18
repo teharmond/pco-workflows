@@ -11,6 +11,8 @@ import {
   Parable,
 } from "@/components/icons";
 import Link from "next/link";
+import { Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const projects = [
   {
@@ -52,7 +54,12 @@ export default async function Page() {
         <div className="max-w-4xl mx-auto py-6">
           <div className="flex items-center  justify-between mb-8">
             <h1 className=" font-semibold tracking-tight">Kanban Workflows</h1>
-            <LoginButton isLoggedIn={isLoggedIn} />
+            <div className="flex items-center gap-2">
+              <Link href="/overdue">
+                <Button variant="outline">Overdue Cards</Button>
+              </Link>
+              <LoginButton isLoggedIn={isLoggedIn} />
+            </div>
           </div>
           <WorkflowsList />
         </div>

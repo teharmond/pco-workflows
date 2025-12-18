@@ -45,7 +45,7 @@ export async function POST(
   }
 
   try {
-    const { personId, note } = await request.json()
+    const { personId, note, note_category_id } = await request.json()
 
     if (!personId) {
       return NextResponse.json({ error: "Person ID required" }, { status: 400 })
@@ -55,10 +55,15 @@ export async function POST(
       return NextResponse.json({ error: "Note content required" }, { status: 400 })
     }
 
+    const noteAttributes: { note: string; note_category_id?: string } = { note }
+    if (note_category_id) {
+      noteAttributes.note_category_id = note_category_id
+    }
+
     const response = await client.people
       .person(personId)
       .workflowCards()
-      .createNote(cardId, { note })
+      .createNote(cardId, noteAttributes)
 
     return NextResponse.json(response)
   } catch (error) {
